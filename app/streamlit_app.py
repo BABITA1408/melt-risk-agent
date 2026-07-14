@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import sys
 import subprocess
+import random
 
 APP_DIR = os.path.dirname(__file__)
 PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, ".."))
@@ -44,106 +45,170 @@ def bootstrap_pipeline():
     return "built fresh"
 
 
-with st.spinner("Setting up data pipeline (first load only)..."):
+with st.spinner("🍦 Scooping intelligence..."):
     bootstrap_pipeline()
 
 from agent import run_agent
 
 st.set_page_config(page_title="Melt Risk Agent", page_icon="🍦", layout="centered")
 
-# ============================== THEME / CSS ==============================
+# ============================================================================
+# THEME / CSS  -  premium ice-cream-boutique visual system
+# ============================================================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@500;600;700;800&display=swap');
 
+/* ---------------------------------------------------------------------- */
+/* 1. DESIGN TOKENS                                                        */
+/* ---------------------------------------------------------------------- */
 :root {
-    --cream: #FFF9F0;
-    --plum: #2D1B3D;
-    --plum-2: #3F2350;
-    --raspberry: #FF4D8D;
-    --raspberry-dark: #D6266A;
-    --mint: #3DE0C0;
-    --mint-dark: #1FA98D;
-    --lemon: #FFD866;
-    --grape: #B47CFF;
-    --choco: #4A2E1F;
-    --text-light: #F3E8FF;
+    --cream:        #FFF9F0;
+    --vanilla:      #FFF1DC;
+    --plum:         #2B1735;
+    --plum-2:       #3C2149;
+    --raspberry:    #FF4D8D;
+    --raspberry-dk: #D6266A;
+    --mint:         #3DE0C0;
+    --mint-dk:      #1FA98D;
+    --lemon:        #FFD866;
+    --grape:        #B47CFF;
+    --sky:          #7FD7F5;
+    --choco:        #4A2E1F;
+    --text-light:   #F3E8FF;
+    --glass:        rgba(255,255,255,0.08);
+    --glass-brd:    rgba(255,255,255,0.20);
 }
 
-html, body, [class*="css"] {
-    font-family: 'Quicksand', sans-serif;
-}
+html, body, [class*="css"] { font-family: 'Quicksand', sans-serif; }
 
-/* Main app background: rich plum/berry gradient + scattered sprinkle confetti texture */
+/* ---------------------------------------------------------------------- */
+/* 2. BACKGROUND - layered gradient + drifting blurred blobs + sprinkles   */
+/* ---------------------------------------------------------------------- */
 .stApp {
     background:
-        radial-gradient(circle at 4px 4px, rgba(255,77,141,0.35) 1.5px, transparent 1.5px),
-        radial-gradient(circle at 24px 34px, rgba(61,224,192,0.30) 1.5px, transparent 1.5px),
-        radial-gradient(circle at 44px 14px, rgba(255,216,102,0.28) 1.5px, transparent 1.5px),
-        radial-gradient(circle at 14% 10%, rgba(255,77,141,0.28) 0%, transparent 42%),
-        radial-gradient(circle at 90% 12%, rgba(61,224,192,0.24) 0%, transparent 40%),
-        radial-gradient(circle at 50% 100%, rgba(180,124,255,0.22) 0%, transparent 48%),
+        radial-gradient(circle at 4px 4px, rgba(255,77,141,.35) 1.5px, transparent 1.5px),
+        radial-gradient(circle at 24px 34px, rgba(61,224,192,.28) 1.5px, transparent 1.5px),
+        radial-gradient(circle at 44px 14px, rgba(255,216,102,.26) 1.5px, transparent 1.5px),
         linear-gradient(180deg, var(--plum) 0%, var(--plum-2) 100%);
-    background-size: 60px 60px, 60px 60px, 60px 60px, auto, auto, auto, auto;
+    background-size: 60px 60px, 60px 60px, 60px 60px, auto;
     background-attachment: fixed;
+    position: relative;
+    overflow-x: hidden;
 }
 
-/* ---------- Header banner ---------- */
-.mr-header { padding: 2.2rem 1.8rem 3.2rem 1.8rem; text-align: center; position: relative; }
+.mr-blobs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.mr-blob {
+    position: absolute; border-radius: 50%; filter: blur(50px); opacity: 0.55;
+    animation: blobDrift 16s ease-in-out infinite;
+}
+.mr-blob.b1 { width: 340px; height: 340px; top: -80px; left: -60px; background: var(--raspberry); animation-delay: 0s; }
+.mr-blob.b2 { width: 300px; height: 300px; top: 10%; right: -80px; background: var(--mint); animation-delay: -5s; }
+.mr-blob.b3 { width: 260px; height: 260px; bottom: -60px; left: 20%; background: var(--grape); animation-delay: -9s; }
+.mr-blob.b4 { width: 220px; height: 220px; bottom: 10%; right: 10%; background: var(--lemon); opacity: 0.35; animation-delay: -3s; }
+@keyframes blobDrift {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33%      { transform: translate(24px,-30px) scale(1.08); }
+    66%      { transform: translate(-18px,18px) scale(0.95); }
+}
+
+/* Floating decorative emojis - purely cosmetic, ignore clicks */
+.mr-float-emoji {
+    position: fixed; font-size: 1.8rem; opacity: 0.35; pointer-events: none; z-index: 0;
+    animation: floatY 6s ease-in-out infinite;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25));
+}
+@keyframes floatY {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50%      { transform: translateY(-18px) rotate(4deg); }
+}
+
+/* Make sure real content sits above the decorative layer */
+[data-testid="stAppViewContainer"] > .main { position: relative; z-index: 1; }
+
+/* ---------------------------------------------------------------------- */
+/* 3. HERO HEADER                                                          */
+/* ---------------------------------------------------------------------- */
+.mr-header { padding: 2.4rem 1.8rem 3.4rem 1.8rem; text-align: center; position: relative; }
+.mr-logo {
+    font-size: 4rem; display: inline-block;
+    animation: logoPulse 3.2s ease-in-out infinite;
+    filter: drop-shadow(0 10px 20px rgba(255,77,141,0.45));
+}
+@keyframes logoPulse {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50%      { transform: scale(1.08) rotate(-3deg); }
+}
 .mr-title {
     font-family: 'Fredoka', sans-serif;
     font-weight: 700;
-    font-size: 3.1rem;
+    font-size: 3.4rem;
     line-height: 1.05;
-    margin: 0;
-    background: linear-gradient(90deg, var(--raspberry) 0%, var(--lemon) 35%, var(--mint) 70%, var(--grape) 100%);
-    background-size: 250% auto;
+    margin: 0.3rem 0 0 0;
+    background: linear-gradient(90deg, var(--raspberry) 0%, var(--lemon) 33%, var(--mint) 66%, var(--grape) 100%);
+    background-size: 280% auto;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: mr-shimmer 8s ease-in-out infinite;
+    animation: shimmer 8s ease-in-out infinite;
 }
-@keyframes mr-shimmer {
+@keyframes shimmer {
     0%   { background-position: 0% center; }
     50%  { background-position: 100% center; }
     100% { background-position: 0% center; }
 }
 .mr-subtitle {
-    font-family: 'Quicksand', sans-serif;
     font-weight: 600;
     color: #E4D6F7;
-    max-width: 640px;
-    margin: 0.8rem auto 0 auto;
-    font-size: 1.04rem;
-    line-height: 1.55;
+    max-width: 620px;
+    margin: 0.9rem auto 0 auto;
+    font-size: 1.05rem;
+    line-height: 1.6;
 }
 /* Melting drip divider under the header */
 .mr-drip {
-    height: 36px;
+    height: 38px;
     margin-top: -1px;
     background-image: radial-gradient(circle at 22px -12px, transparent 20px, var(--cream) 21px);
     background-size: 44px 44px;
     background-repeat: repeat-x;
     background-position: bottom;
+    animation: dripWiggle 5s ease-in-out infinite;
 }
+@keyframes dripWiggle { 0%,100% { background-position-x: 0; } 50% { background-position-x: 6px; } }
 
-/* ---------- Badges row ---------- */
-.mr-badges { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1.1rem; }
+.mr-badges { display: flex; gap: 0.55rem; justify-content: center; flex-wrap: wrap; margin-top: 1.3rem; }
 .mr-badge {
-    background: rgba(255,255,255,0.10);
-    border: 1px solid rgba(255,255,255,0.22);
+    background: var(--glass);
+    border: 1px solid var(--glass-brd);
+    backdrop-filter: blur(8px);
     color: var(--text-light);
-    padding: 0.32rem 0.9rem;
+    padding: 0.36rem 0.95rem;
     border-radius: 999px;
-    font-family: 'Quicksand', sans-serif;
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.02em;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.mr-badge:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
+
+/* ---------------------------------------------------------------------- */
+/* 4. GLASS CARD + GRADIENT BORDER (reusable pattern)                      */
+/* ---------------------------------------------------------------------- */
+.gradient-border-fx { position: relative; }
+.gradient-border-fx::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 2px;
+    background: linear-gradient(135deg, var(--raspberry), var(--lemon), var(--mint), var(--grape));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none; opacity: 0.85;
 }
 
-/* ---------- Sidebar ---------- */
+/* ---------------------------------------------------------------------- */
+/* 5. SIDEBAR                                                              */
+/* ---------------------------------------------------------------------- */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #201029 0%, #2D1B3D 100%);
+    background: linear-gradient(180deg, #1D0F26 0%, #2B1735 100%);
     border-right: 1px solid rgba(255,255,255,0.08);
 }
 [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
@@ -154,80 +219,119 @@ html, body, [class*="css"] {
     color: #E4D6F7;
 }
 [data-testid="stSidebar"] .stButton button {
-    width: 100%;
-    text-align: left;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.15);
+    width: 100%; text-align: left;
+    background: var(--glass);
+    border: 1px solid var(--glass-brd);
     color: var(--text-light);
-    border-radius: 12px;
-    padding: 0.6rem 0.95rem;
-    margin-bottom: 0.45rem;
-    font-family: 'Quicksand', sans-serif;
+    border-radius: 14px;
+    padding: 0.65rem 1rem;
+    margin-bottom: 0.5rem;
     font-weight: 700;
     font-size: 0.85rem;
-    transition: all 0.15s ease;
+    transition: all 0.22s cubic-bezier(.2,.8,.2,1);
 }
-[data-testid="stSidebar"] .stButton button:nth-of-type(5n+1):hover { border-color: var(--raspberry); box-shadow: 0 0 16px rgba(255,77,141,0.35); }
-[data-testid="stSidebar"] .stButton button:nth-of-type(5n+2):hover { border-color: var(--mint); box-shadow: 0 0 16px rgba(61,224,192,0.35); }
-[data-testid="stSidebar"] .stButton button:nth-of-type(5n+3):hover { border-color: var(--lemon); box-shadow: 0 0 16px rgba(255,216,102,0.35); }
-[data-testid="stSidebar"] .stButton button:nth-of-type(5n+4):hover { border-color: var(--grape); box-shadow: 0 0 16px rgba(180,124,255,0.35); }
-[data-testid="stSidebar"] .stButton button:hover { transform: translateX(3px); }
+[data-testid="stSidebar"] .stButton button:nth-of-type(5n+1):hover { border-color: var(--raspberry); box-shadow: 0 6px 18px rgba(255,77,141,0.4); }
+[data-testid="stSidebar"] .stButton button:nth-of-type(5n+2):hover { border-color: var(--mint); box-shadow: 0 6px 18px rgba(61,224,192,0.4); }
+[data-testid="stSidebar"] .stButton button:nth-of-type(5n+3):hover { border-color: var(--lemon); box-shadow: 0 6px 18px rgba(255,216,102,0.4); }
+[data-testid="stSidebar"] .stButton button:nth-of-type(5n+4):hover { border-color: var(--grape); box-shadow: 0 6px 18px rgba(180,124,255,0.4); }
+[data-testid="stSidebar"] .stButton button:hover { transform: translateY(-2px) scale(1.015); }
+[data-testid="stSidebar"] .stButton button:active { transform: scale(0.97); }
 
-/* ---------- Chat area ---------- */
+/* ---------------------------------------------------------------------- */
+/* 6. CHAT MESSAGES                                                        */
+/* ---------------------------------------------------------------------- */
 [data-testid="stChatMessage"] {
     background: rgba(255, 249, 240, 0.98) !important;
-    border-radius: 18px !important;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.22);
-    padding: 0.5rem 0.3rem;
-    margin-bottom: 0.8rem;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.25);
+    padding: 0.55rem 0.35rem;
+    margin-bottom: 0.85rem;
     border-left: 5px solid var(--mint);
+    animation: messageIn 0.45s cubic-bezier(.2,.8,.2,1) both;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-/* Chat messages alternate user/assistant in DOM order - color-code by position */
-[data-testid="stChatMessage"]:nth-of-type(odd) { border-left-color: var(--raspberry); }
-[data-testid="stChatMessage"]:nth-of-type(even) { border-left-color: var(--mint-dark); }
+[data-testid="stChatMessage"]:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(0,0,0,0.3); }
+@keyframes messageIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* Messages alternate user/assistant in DOM order - color-code by position */
+[data-testid="stChatMessage"]:nth-of-type(odd)  { border-left-color: var(--raspberry); }
+[data-testid="stChatMessage"]:nth-of-type(even) { border-left-color: var(--mint-dk); }
 [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] li {
-    color: var(--choco) !important;
-    font-weight: 600;
-    font-family: 'Quicksand', sans-serif;
+    color: var(--choco) !important; font-weight: 600;
 }
-[data-testid="stChatMessage"] strong { color: var(--raspberry-dark) !important; }
+[data-testid="stChatMessage"] strong { color: var(--raspberry-dk) !important; }
 
-/* Chat input box */
+/* Chat input */
 [data-testid="stChatInput"] {
     background: rgba(255, 249, 240, 0.97);
-    border-radius: 16px;
+    border-radius: 999px;
     border: 2px solid var(--grape);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
-[data-testid="stChatInput"] textarea {
-    color: var(--choco) !important;
-    font-weight: 600;
-    font-family: 'Quicksand', sans-serif;
+[data-testid="stChatInput"]:focus-within {
+    border-color: var(--raspberry);
+    box-shadow: 0 0 0 5px rgba(255,77,141,0.22), 0 10px 26px rgba(180,124,255,0.35);
 }
+[data-testid="stChatInput"] textarea { color: var(--choco) !important; font-weight: 600; }
 
-/* Generic buttons in main area */
+/* ---------------------------------------------------------------------- */
+/* 7. BUTTONS (global)                                                     */
+/* ---------------------------------------------------------------------- */
 .stButton button {
-    border-radius: 10px;
-    font-family: 'Quicksand', sans-serif;
+    border-radius: 12px;
     font-weight: 700;
+    transition: all 0.22s cubic-bezier(.2,.8,.2,1);
 }
+.stButton button:hover { transform: translateY(-2px) scale(1.02); }
+.stButton button:active { transform: translateY(0) scale(0.97); }
 
-/* Form / API key card */
+/* ---------------------------------------------------------------------- */
+/* 8. API KEY FORM CARD                                                    */
+/* ---------------------------------------------------------------------- */
 [data-testid="stForm"] {
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 18px;
-    padding: 1.5rem;
+    background: var(--glass);
+    border: 1px solid var(--glass-brd);
+    border-radius: 22px;
+    padding: 1.6rem;
+    backdrop-filter: blur(10px);
+    position: relative;
 }
 
-/* Hide default Streamlit chrome we don't need */
+/* ---------------------------------------------------------------------- */
+/* 9. CUSTOM SCROLLBAR                                                     */
+/* ---------------------------------------------------------------------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--raspberry), var(--mint));
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--raspberry-dk), var(--mint-dk)); }
+
+/* Hide default Streamlit chrome */
 #MainMenu, footer { visibility: hidden; }
 </style>
+
+<div class="mr-blobs">
+    <div class="mr-blob b1"></div>
+    <div class="mr-blob b2"></div>
+    <div class="mr-blob b3"></div>
+    <div class="mr-blob b4"></div>
+</div>
+<div class="mr-float-emoji" style="top:8%; left:6%; animation-delay:0s;">🍓</div>
+<div class="mr-float-emoji" style="top:14%; right:8%; animation-delay:-2s;">🍫</div>
+<div class="mr-float-emoji" style="bottom:18%; left:10%; animation-delay:-4s;">✨</div>
+<div class="mr-float-emoji" style="bottom:10%; right:12%; animation-delay:-1s;">🧊</div>
 """, unsafe_allow_html=True)
 
-# ============================== HEADER ==============================
+# ============================================================================
+# HEADER
+# ============================================================================
 st.markdown("""
 <div class="mr-header">
-    <div style="font-size: 3.4rem;">🍦</div>
+    <div class="mr-logo">🍦</div>
     <h1 class="mr-title">Melt Risk Agent</h1>
     <p class="mr-subtitle">
         An agentic AI analyst for ice cream cold-chain distribution. Ask about melt risk,
@@ -279,6 +383,16 @@ SUGGESTIONS = [
     "📋 Summarize overall risk across the network",
 ]
 
+# Playful, rotating loading messages for the "thinking" spinner - cosmetic only,
+# does not touch the agent logic itself.
+THINKING_MESSAGES = [
+    "🍦 Scooping intelligence...",
+    "🍨 Checking frozen inventory...",
+    "❄️ Keeping things cool...",
+    "🧊 Calculating melt risk...",
+    "🍓 Chasing the right data...",
+]
+
 with st.sidebar:
     st.markdown("### 🍨 Try asking")
     for s in SUGGESTIONS:
@@ -298,7 +412,9 @@ with st.sidebar:
         st.session_state.history = []
         st.rerun()
 
-# ============================== CHAT ==============================
+# ============================================================================
+# CHAT
+# ============================================================================
 for msg in st.session_state.history:
     avatar = "🍦" if msg["role"] == "assistant" else "🙋"
     with st.chat_message(msg["role"], avatar=avatar):
@@ -309,7 +425,7 @@ def handle_prompt(prompt: str):
     with st.chat_message("user", avatar="🙋"):
         st.markdown(prompt)
     with st.chat_message("assistant", avatar="🍦"):
-        with st.spinner("Thinking (planning → querying data → reasoning)..."):
+        with st.spinner(random.choice(THINKING_MESSAGES)):
             try:
                 answer, updated_history = run_agent(prompt, st.session_state.history)
                 st.markdown(answer)
