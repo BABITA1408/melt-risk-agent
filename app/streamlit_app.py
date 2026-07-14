@@ -11,7 +11,7 @@ WAREHOUSE_PATH = os.path.join(PROJECT_ROOT, "warehouse.duckdb")
 sys.path.insert(0, APP_DIR)
 
 # set_page_config MUST be the first Streamlit command in the script.
-st.set_page_config(page_title="Melt Risk Agent", page_icon="🍦", layout="centered")
+st.set_page_config(page_title="ColdChain Intelligence", page_icon="🍦", layout="centered")
 
 
 @st.cache_resource(show_spinner=False)
@@ -365,7 +365,7 @@ st.markdown("""
         <div class="mr-logo-glow"></div>
         <div class="mr-logo">🍦</div>
     </div>
-    <h1 class="mr-title">Melt Risk Agent</h1>
+    <h1 class="mr-title">ColdChain Intelligence</h1>
     <p class="mr-subtitle">
         An agentic AI analyst for ice cream cold-chain distribution. Ask about melt risk,
         stock levels, or demand — it queries a real dbt + DuckDB warehouse and reasons over
